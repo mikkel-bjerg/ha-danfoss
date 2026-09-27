@@ -68,10 +68,10 @@ public record IconRoom(String name, int number, double temperature,
     }
 
     // Each room is its own MQTT device so it can be assigned to its own HA area independently.
+    // (No via_device: the house itself is never published as its own discovered device.)
     private Map<String, String> roomDevice(IconMaster iconMaster) {
         return Map.of("name", name, "model", "Icon Room", "manufacturer", "Danfoss",
-                "identifiers", String.format("danfoss_room_%d", number),
-                "via_device", iconMaster.serialNumber());
+                "identifiers", String.format("danfoss_room_%d", number));
     }
 
     private static final List<String> MODES = List.of("off", "heat", "cool");
