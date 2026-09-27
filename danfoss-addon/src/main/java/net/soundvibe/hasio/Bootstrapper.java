@@ -191,6 +191,12 @@ public class Bootstrapper {
                         var climateEntity = room.toMQTTClimateEntity(thermostatID, STATE_TOPIC_FMT, SET_TOPIC_FMT, iconMaster);
                         mqttClient.publish(entityTopic, Json.toJsonBytes(climateEntity), 0, false);
 
+                        // and a temperature sensor entity, so it gets a real unique_id/device and can be assigned to an area
+                        var sensorID = STR."danfoss_icon_sensor_room_\{room.number()}";
+                        var sensorEntityTopic = STR."homeassistant/sensor/\{sensorID}/config";
+                        var sensorEntity = room.toMQTTSensorEntity(sensorID, STATE_TOPIC_FMT, iconMaster);
+                        mqttClient.publish(sensorEntityTopic, Json.toJsonBytes(sensorEntity), 0, false);
+
                         // now publish update to state topic
                         var stateTopic = String.format(STATE_TOPIC_FMT, room.number());
                         var state = room.toState();

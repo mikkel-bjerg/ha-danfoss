@@ -1,6 +1,7 @@
 package net.soundvibe.hasio.danfoss.data;
 
 import net.soundvibe.hasio.ha.model.MQTTClimateEntity;
+import net.soundvibe.hasio.ha.model.MQTTSensorEntity;
 import net.soundvibe.hasio.ha.model.State;
 
 import java.util.List;
@@ -42,9 +43,7 @@ public record IconRoom(String name, int number, double temperature,
         var stateTopic = String.format(stateTopicFmt, number);
         var setTempTopic = String.format(setTopicFmt, number);
         return new MQTTClimateEntity(id, name, MODES, temperatureLow, temperatureHigh, 0.5,
-                Map.of("name", iconMaster.houseName(), "model", "Icon", "manufacturer", "Danfoss",
-                        "hw_version", iconMaster.hardwareRevision(), "sw_version", iconMaster.softwareRevision(),
-                        "identifiers", iconMaster.serialNumber()),
+                roomDevice(iconMaster),
                 stateTopic, "{{ value_json.attributes.availability }}",
                 stateTopic, "{{ value_json.state }}",
                 stateTopic, "{{ value_json.attributes.mode }}",
@@ -56,6 +55,23 @@ public record IconRoom(String name, int number, double temperature,
                 stateTopic, "{{ value_json.attributes.temperature_home }}",
                 stateTopic, "{{ value_json.attributes.temperature_away }}"
         );
+    }
+
+    public MQTTSensorEntity toMQTTSensorEntity(String id, String stateTopicFmt, IconMaster iconMaster) {
+        var stateTopic = String.format(stateTopicFmt, number);
+        return new MQTTSensorEntity(id, String.format("%s temperature", name),
+                "temperature", "measurement", "°C",
+                stateTopic, "{{ value_json.state }}",
+                stateTopic, "{{ value_json.attributes.availability }}",
+                stateTopic, "{{ value_json.attributes | tojson }}",
+                roomDevice(iconMaster));
+    }
+
+    // Each room is its own MQTT device so it can be assigned to its own HA area independently.
+    private Map<String, String> roomDevice(IconMaster iconMaster) {
+        return Map.of("name", name, "model", "Icon Room", "manufacturer", "Danfoss",
+                "identifiers", String.format("danfoss_room_%d", number),
+                "via_device", iconMaster.serialNumber());
     }
 
     private static final List<String> MODES = List.of("off", "heat", "cool");
