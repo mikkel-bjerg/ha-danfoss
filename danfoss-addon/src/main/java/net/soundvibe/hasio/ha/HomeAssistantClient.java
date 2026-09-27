@@ -17,7 +17,10 @@ public class HomeAssistantClient {
 
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json");
 
-    private static final String HA_CORE_API = "http://supervisor/core/api";
+    // Supervisor-managed addons proxy through /core/api; outside a Supervisor
+    // (e.g. plain Kubernetes), override with HA_API_BASE_URL to point directly
+    // at a Home Assistant instance's /api endpoint.
+    private static final String HA_CORE_API = System.getenv().getOrDefault("HA_API_BASE_URL", "http://supervisor/core/api");
 
     public HomeAssistantClient(String token) {
         this.token = STR."Bearer \{token}";
