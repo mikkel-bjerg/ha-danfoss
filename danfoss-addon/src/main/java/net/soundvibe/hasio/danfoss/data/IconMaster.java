@@ -20,6 +20,7 @@ public record IconMaster(
 
     public State toState() {
         return new State(Instant.now().toString(), Map.ofEntries(
+                entry("unique_id", "danfoss_master_controller"),
                 entry("device_class", "timestamp"),
                 entry("state_class", "measurement"),
                 entry("house_name", String.valueOf(houseName)),

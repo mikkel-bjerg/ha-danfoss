@@ -19,6 +19,7 @@ public record IconRoom(String name, int number, double temperature,
             case SLEEP -> temperatureSleep;
         };
         return new State(String.valueOf(temperature), Map.ofEntries(
+                entry("unique_id", String.format("danfoss_room_%d", number)),
                 entry("unit_of_measurement", "°C"),
                 entry("friendly_name", String.format("%s temperature", name)),
                 entry("device_class", "temperature"),
