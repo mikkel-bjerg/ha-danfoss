@@ -1,27 +1,21 @@
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /build
+COPY pom.xml .
+COPY src src
+RUN mvn clean package -B -DskipTests
+
 FROM ghcr.io/home-assistant/base:latest
 
 RUN mkdir -p /share/danfoss-icon/
 
-RUN apk add --no-cache openjdk21 curl
+RUN apk add --no-cache openjdk21
 
 WORKDIR /
 
 COPY run.sh /
 RUN chmod a+x /run.sh
 
-COPY config.yaml /tmp/config.yaml
-
-# Download the JAR matching this add-on's version.
-# Falls back to 'latest' if the versioned release doesn't exist yet.
-RUN VERSION=$(grep '^version:' /tmp/config.yaml | head -1 | sed 's/version: *"//;s/"$//') && \
-    echo "Add-on version: $VERSION" && \
-    if curl -L -f -o /app.jar "https://github.com/soundvibe/ha-danfoss/releases/download/v${VERSION}/ha-danfoss-addon.jar" 2>/dev/null; then \
-      echo "Downloaded JAR for v${VERSION}"; \
-    elif curl -L -f -o /app.jar "https://github.com/soundvibe/ha-danfoss/releases/download/${VERSION}/ha-danfoss-addon.jar" 2>/dev/null; then \
-      echo "Downloaded JAR for ${VERSION}"; \
-    else \
-      echo "Versioned release not found, falling back to latest" && \
-      curl -L -o /app.jar "https://github.com/soundvibe/ha-danfoss/releases/latest/download/ha-danfoss-addon.jar"; \
-    fi
+COPY --from=build /build/target/ha-danfoss-addon-*.jar /app.jar
 
 CMD [ "/run.sh" ]
